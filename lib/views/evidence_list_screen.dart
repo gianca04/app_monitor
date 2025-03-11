@@ -1,5 +1,6 @@
 import 'package:app_monitor/models/evidence.dart';
 import 'package:app_monitor/models/photo.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -128,6 +129,7 @@ class EvidenceListScreen extends StatelessWidget {
                                   if (evidence.photos != null &&
                                       evidence.photos!.isNotEmpty)
                                     _buildPhotosWidget(evidence.photos!),
+                                  _ActionsRow(item: evidence),
                                 ],
                               ),
                             ),
@@ -225,13 +227,38 @@ class _ActionsRow extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.grey, size: 18),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all(Colors.red),
+            foregroundColor: MaterialStateProperty.all(Colors.grey),
           ),
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [],
+        children: [
+          /*
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.mode_comment_outlined),
+            label: Text(
+                '10'),
+          ),
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.repeat_rounded),
+            label: Text(
+                //item.retweetsCount == 0 ? '' : item.retweetsCount.toString()),
+                '10'
+          ),
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.favorite_border),
+            label: Text(item.likesCount == 0 ? '' : item.likesCount.toString()),
+          ),
+          */
+          IconButton(
+            icon: const Icon(CupertinoIcons.share_up),
+            onPressed: () {},
+          ),
+        ],
       ),
     );
   }
