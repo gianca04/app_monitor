@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
-import 'package:app_monitor/screens/HomePage.dart';
+import 'package:app_monitor/views/evidence_list_screen.dart';
 import 'package:app_monitor/screens/LikesPage.dart';
 import 'package:app_monitor/screens/ProfilePage.dart';
 import 'package:app_monitor/screens/SearchPage.dart';
 
 class HomeScreen extends StatefulWidget {
-  final String name;
-  const HomeScreen({super.key, required this.name});
+  //final String name;
+  //const HomeScreen({super.key, required this.name});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -23,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _screens.addAll([
-      HomePage(name: widget.name),
+      EvidenceListScreen(),
       LikesPage(),
       SearchPage(),
       ProfilePage(),
@@ -33,7 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Bienvenido, ${widget.name}")),
+      //appBar: AppBar(title: Text("Bienvenido, ${widget.name}")),
+      appBar: AppBar(title: Text("Bienvenido")),
+
       body: _screens[_selectedIndex], // Muestra la pantalla seleccionada
       bottomNavigationBar: SalomonBottomBar(
         currentIndex: _selectedIndex,

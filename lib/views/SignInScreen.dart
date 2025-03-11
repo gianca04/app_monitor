@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -147,8 +149,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    String name = 'Juan'; // Aquí deberías obtener el nombre real del usuario
-    context.go('/home/$name'); // Navegar con parámetro
+    //String name = 'Juan'; // Aquí deberías obtener el nombre real del usuario
+    //context.go('/home/$name'); // Navegar con parámetro
+    context.go('/home'); // Navegar con parámetro
 
     /*try {
       if (nameController.text.isEmpty || passwordController.text.isEmpty) {
