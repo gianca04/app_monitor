@@ -15,7 +15,7 @@ class APIException implements Exception {
 }
 
 class ApiService {
-  static const String baseUrl = "http://192.168.10.52:8000/api";
+  static const String baseUrl = "http://app-monitor.sat-industriales.pe/api";
 
   static Future<PaginatedEvidences> getEvidences({
     int page = 1,
