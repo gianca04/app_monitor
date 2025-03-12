@@ -7,32 +7,98 @@
 import 'package:flutter/material.dart';
 import 'package:app_monitor/models/evidence.dart';
 import 'package:app_monitor/services/api_service.dart';
+import 'package:app_monitor/models/paginated_evidences.dart';
 
 class EvidenceProvider with ChangeNotifier {
   List<Evidence> _evidences = [];
-  String? error;
+  int _currentPage = 1;
+  int _lastPage = 1;
   bool isLoading = false;
+  bool isLoadMore = false;
+  String? error;
+
+  // Filtros
+  String? search;
+  String?
+  startDate; // Cambié 'dateFrom' a 'startDate' para que coincida con Laravel
+  String? endDate; // Cambié 'dateTo' a 'endDate' para que coincida con Laravel
+  String sortOrder = "desc"; // Cambié 'orderBy' a 'sortOrder'
 
   List<Evidence> get evidences => _evidences;
 
-  Future<void> loadEvidences() async {
-    isLoading = true;
+  // Indica si hay más páginas para cargar
+  bool get hasMore => _currentPage < _lastPage;
+
+  /// Actualiza los filtros y recarga la lista (reiniciando la paginación)
+  void setFilters({
+    String? search,
+    String? startDate, // Cambio de nombre para coincidir con Laravel
+    String? endDate, // Cambio de nombre para coincidir con Laravel
+    String? sortOrder, // Cambio de nombre para coincidir con Laravel
+  }) {
+    this.search = search;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    if (sortOrder != null) {
+      this.sortOrder = sortOrder;
+    }
+    // Reiniciamos la paginación y vaciamos la lista
+    _currentPage = 1;
+    _evidences.clear();
+    loadEvidences();
+  }
+
+  /// Carga la primera página o recarga la lista con los filtros actuales.
+  Future<void> loadEvidences({bool loadMore = false}) async {
+    if (loadMore) {
+      isLoadMore = true;
+    } else {
+      isLoading = true;
+      // Reiniciamos la paginación si no es loadMore
+      _currentPage = 1;
+      _evidences.clear();
+    }
     error = null;
-    notifyListeners();
+
     try {
-      _evidences = await ApiService.getEvidences();
+      final PaginatedEvidences paginatedResponse =
+          await ApiService.getEvidences(
+            page: _currentPage,
+            search: search,
+            startDate: startDate, // Cambio de nombre para coincidir con Laravel
+            endDate: endDate, // Cambio de nombre para coincidir con Laravel
+            sortOrder: sortOrder, // Cambio de nombre para coincidir con Laravel
+          );
+      _lastPage = paginatedResponse.lastPage;
+      _evidences.addAll(paginatedResponse.evidences);
     } catch (e) {
       error = e.toString();
     }
+
     isLoading = false;
+    isLoadMore = false;
     notifyListeners();
   }
 
-  Future<void> createEvidence(String name, String description) async {
+  /// Carga la siguiente página si hay más resultados.
+  Future<void> loadMoreEvidences() async {
+    if (hasMore && !isLoadMore) {
+      _currentPage++;
+      await loadEvidences(loadMore: true);
+    }
+  }
+
+  Future<int> createEvidence(String name, String description) async {
     try {
-      await ApiService.createEvidence(name, description);
+      // Se asume que el ApiService.createEvidence retorna el id de la nueva evidencia.
+      final int newEvidenceId = await ApiService.createEvidence(
+        name,
+        description,
+      );
       await loadEvidences();
+      return newEvidenceId;
     } catch (e) {
+      // Es recomendable manejar el error o propagarlo para que la UI lo capture.
       throw e;
     }
   }

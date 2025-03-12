@@ -1,9 +1,11 @@
+import 'package:app_monitor/screens/SearchPage.dart';
+import 'package:app_monitor/views/evidence_create.dart';
+import 'package:app_monitor/views/evidence_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:app_monitor/views/evidence_list_screen.dart';
-import 'package:app_monitor/screens/LikesPage.dart';
 import 'package:app_monitor/screens/ProfilePage.dart';
-import 'package:app_monitor/screens/SearchPage.dart';
+import 'package:app_monitor/views/evidence_search.dart';
 
 class HomeScreen extends StatefulWidget {
   //final String name;
@@ -25,8 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _screens.addAll([
       EvidenceListScreen(),
-      LikesPage(),
-      SearchPage(),
+      CreateEvidenceForm(),
+      EvidenceSearchScreen(),
       ProfilePage(),
     ]);
   }
@@ -35,8 +37,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       //appBar: AppBar(title: Text("Bienvenido, ${widget.name}")),
-      appBar: AppBar(title: Text("Bienvenido")),
-
       body: _screens[_selectedIndex], // Muestra la pantalla seleccionada
       bottomNavigationBar: SalomonBottomBar(
         currentIndex: _selectedIndex,
@@ -50,22 +50,23 @@ class _HomeScreenState extends State<HomeScreen> {
         items: [
           SalomonBottomBarItem(
             icon: Icon(Icons.home),
-            title: Text("Home"),
+            title: Text("Inicio"),
             selectedColor: Colors.purple,
           ),
+
           SalomonBottomBarItem(
-            icon: Icon(Icons.favorite_border),
-            title: Text("Likes"),
+            icon: Icon(Icons.add_a_photo),
+            title: Text("Buscar Evidencia"),
             selectedColor: Colors.pink,
           ),
           SalomonBottomBarItem(
             icon: Icon(Icons.search),
-            title: Text("Search"),
+            title: Text("Filtrar evidencias"),
             selectedColor: Colors.orange,
           ),
           SalomonBottomBarItem(
             icon: Icon(Icons.person),
-            title: Text("Profile"),
+            title: Text("Perfil"),
             selectedColor: Colors.teal,
           ),
         ],

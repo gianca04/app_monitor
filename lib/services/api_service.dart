@@ -1,17 +1,54 @@
 import 'dart:convert';
+import 'package:app_monitor/models/paginated_evidences.dart';
 import 'package:http/http.dart' as http;
 import 'package:app_monitor/models/evidence.dart';
 import 'package:app_monitor/services/api_exception.dart';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class APIException implements Exception {
+  final String message;
+  APIException(this.message);
+  @override
+  String toString() => message;
+}
+
 class ApiService {
   static const String baseUrl = "http://192.168.10.52:8000/api";
 
-  static Future<List<Evidence>> getEvidences() async {
-    final response = await http.get(Uri.parse("$baseUrl/evidences"));
+  static Future<PaginatedEvidences> getEvidences({
+    int page = 1,
+    String? search,
+    String?
+    startDate, // Cambié 'dateFrom' a 'startDate' para que coincida con Laravel
+    String?
+    endDate, // Cambié 'dateTo' a 'endDate' para que coincida con Laravel
+    String sortOrder = "desc", // Cambié 'orderBy' a 'sortOrder'
+  }) async {
+    // Construir los parámetros de consulta de forma dinámica
+    final Map<String, String> queryParameters = {
+      'page': page.toString(),
+      'sort_order': sortOrder, // Cambié 'order_by' a 'sort_order'
+    };
+    if (search != null && search.isNotEmpty) {
+      queryParameters['search'] = search;
+    }
+    if (startDate != null && startDate.isNotEmpty) {
+      queryParameters['start_date'] = startDate; // Laravel espera 'start_date'
+    }
+    if (endDate != null && endDate.isNotEmpty) {
+      queryParameters['end_date'] = endDate; // Laravel espera 'end_date'
+    }
+
+    final uri = Uri.parse(
+      "$baseUrl/evidences",
+    ).replace(queryParameters: queryParameters);
+    final response = await http.get(uri);
+
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-      final List evidencesJson = jsonData['data'];
-      return evidencesJson.map((json) => Evidence.fromJson(json)).toList();
+      return PaginatedEvidences.fromJson(jsonData);
     } else {
       throw APIException("Error al cargar las evidencias");
     }
@@ -27,7 +64,8 @@ class ApiService {
     }
   }
 
-  static Future<String> createEvidence(String name, String description) async {
+  // En ApiService
+  static Future<int> createEvidence(String name, String description) async {
     final response = await http.post(
       Uri.parse("$baseUrl/evidences"),
       headers: {"Content-Type": "application/json"},
@@ -35,7 +73,8 @@ class ApiService {
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
       final jsonData = json.decode(response.body);
-      return jsonData['message'];
+      // Se asume que el backend retorna el nuevo ID en 'id'
+      return jsonData['data']['id'];
     } else {
       throw APIException("Error al crear la evidencia");
     }

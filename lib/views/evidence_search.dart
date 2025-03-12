@@ -1,33 +1,31 @@
-import 'package:app_monitor/helpers/helpers.dart';
-import 'package:app_monitor/models/evidence.dart';
-import 'package:app_monitor/models/photo.dart';
-import 'package:app_monitor/providers/evidence_providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:app_monitor/providers/evidence_providers.dart';
+import 'package:app_monitor/models/evidence.dart';
 
-/// Pantalla principal que muestra la lista de evidencias con paginación.
-class EvidenceListScreen extends StatefulWidget {
-  const EvidenceListScreen({Key? key}) : super(key: key);
+import 'package:app_monitor/models/photo.dart';
+
+class EvidenceSearchScreen extends StatefulWidget {
+  const EvidenceSearchScreen({Key? key}) : super(key: key);
 
   @override
-  _EvidenceListScreenState createState() => _EvidenceListScreenState();
+  _EvidenceSearchScreenState createState() => _EvidenceSearchScreenState();
 }
 
-class _EvidenceListScreenState extends State<EvidenceListScreen> {
+class _EvidenceSearchScreenState extends State<EvidenceSearchScreen> {
   late final ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-
-    // Obtenemos el provider sin escuchar para inicializar
     final evidenceProvider = Provider.of<EvidenceProvider>(
       context,
       listen: false,
     );
-    // Cargamos la primera página si aún no se ha cargado
+
+    // Cargar evidencias si la lista está vacía
     if (evidenceProvider.evidences.isEmpty) {
       evidenceProvider.loadEvidences();
     }
@@ -36,7 +34,6 @@ class _EvidenceListScreenState extends State<EvidenceListScreen> {
         ScrollController()..addListener(() {
           if (_scrollController.position.pixels >=
               _scrollController.position.maxScrollExtent - 200) {
-            // Si hay más datos y no se está cargando, cargar la siguiente página
             if (evidenceProvider.hasMore && !evidenceProvider.isLoadMore) {
               evidenceProvider.loadMoreEvidences();
             }
@@ -46,9 +43,17 @@ class _EvidenceListScreenState extends State<EvidenceListScreen> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(() {});
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Muestra el modal de filtros
+  void _showFilterDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _FilterModal(),
+    );
   }
 
   @override
@@ -66,6 +71,12 @@ class _EvidenceListScreenState extends State<EvidenceListScreen> {
               style: TextStyle(color: Colors.black),
             ),
             iconTheme: const IconThemeData(color: Colors.black),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.filter_list, color: Colors.black),
+                onPressed: () => _showFilterDialog(context),
+              ),
+            ],
           ),
           body:
               provider.isLoading && provider.evidences.isEmpty
@@ -77,7 +88,6 @@ class _EvidenceListScreenState extends State<EvidenceListScreen> {
                     child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      // Se agrega un ítem extra si se está cargando más
                       itemCount:
                           provider.evidences.length +
                           (provider.isLoadMore ? 1 : 0),
@@ -86,7 +96,6 @@ class _EvidenceListScreenState extends State<EvidenceListScreen> {
                           final evidence = provider.evidences[index];
                           return EvidenceListItem(evidence: evidence);
                         } else {
-                          // Indicador de carga para paginación
                           return const Padding(
                             padding: EdgeInsets.symmetric(vertical: 16.0),
                             child: Center(
@@ -97,19 +106,252 @@ class _EvidenceListScreenState extends State<EvidenceListScreen> {
                       },
                     ),
                   ),
-          // Si necesitas el botón flotante para crear nuevas evidencias, puedes activarlo aquí.
-          // floatingActionButton: FloatingActionButton(
-          //   onPressed: () => _showCreateEvidenceDialog(context),
-          //   backgroundColor: Colors.blue,
-          //   child: const Icon(Icons.add),
-          // ),
         );
       },
     );
   }
 }
 
-/// Widget que representa cada post de evidencia similar a Twitter.
+class _EvidenceSearchState extends State<EvidenceSearchScreen> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    final evidenceProvider = Provider.of<EvidenceProvider>(
+      context,
+      listen: false,
+    );
+
+    // Cargar evidencias si la lista está vacía
+    if (evidenceProvider.evidences.isEmpty) {
+      evidenceProvider.loadEvidences();
+    }
+
+    _scrollController =
+        ScrollController()..addListener(() {
+          if (_scrollController.position.pixels >=
+              _scrollController.position.maxScrollExtent - 200) {
+            if (evidenceProvider.hasMore && !evidenceProvider.isLoadMore) {
+              evidenceProvider.loadMoreEvidences();
+            }
+          }
+        });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// Muestra el modal de filtros
+  void _showFilterDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _FilterModal(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<EvidenceProvider>(
+      builder: (context, provider, child) {
+        return Scaffold(
+          backgroundColor: Colors.grey[200],
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 1,
+            centerTitle: true,
+            title: const Text(
+              "Evidencias Recientes",
+              style: TextStyle(color: Colors.black),
+            ),
+            iconTheme: const IconThemeData(color: Colors.black),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.filter_list, color: Colors.black),
+                onPressed: () => _showFilterDialog(context),
+              ),
+            ],
+          ),
+          body:
+              provider.isLoading && provider.evidences.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : provider.error != null
+                  ? Center(child: Text("Error: ${provider.error}"))
+                  : RefreshIndicator(
+                    onRefresh: () async => await provider.loadEvidences(),
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      itemCount:
+                          provider.evidences.length +
+                          (provider.isLoadMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index < provider.evidences.length) {
+                          final evidence = provider.evidences[index];
+                          return EvidenceListItem(evidence: evidence);
+                        } else {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+        );
+      },
+    );
+  }
+}
+
+class _FilterModal extends StatefulWidget {
+  @override
+  __FilterModalState createState() => __FilterModalState();
+}
+
+class __FilterModalState extends State<_FilterModal> {
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _startDateController = TextEditingController();
+  final TextEditingController _endDateController = TextEditingController();
+  String _sortOrder = "desc";
+
+  @override
+  void initState() {
+    super.initState();
+    final provider = Provider.of<EvidenceProvider>(context, listen: false);
+    _searchController.text = provider.search ?? '';
+    _startDateController.text = provider.startDate ?? '';
+    _endDateController.text = provider.endDate ?? '';
+    _sortOrder = provider.sortOrder;
+  }
+
+  /// Aplica los filtros y recarga la lista
+  void _applyFilters() {
+    final provider = Provider.of<EvidenceProvider>(context, listen: false);
+    provider.setFilters(
+      search: _searchController.text.isNotEmpty ? _searchController.text : null,
+      startDate:
+          _startDateController.text.isNotEmpty
+              ? _startDateController.text
+              : null,
+      endDate:
+          _endDateController.text.isNotEmpty ? _endDateController.text : null,
+      sortOrder: _sortOrder,
+    );
+    Navigator.pop(context); // Cerrar modal
+  }
+
+  /// Limpia los filtros y recarga la lista
+  void _clearFilters() {
+    final provider = Provider.of<EvidenceProvider>(context, listen: false);
+    provider.setFilters(
+      search: null,
+      startDate: null,
+      endDate: null,
+      sortOrder: "desc",
+    );
+    _searchController.clear();
+    _startDateController.clear();
+    _endDateController.clear();
+    setState(() {
+      _sortOrder = "desc";
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        height: 380,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Filtrar Evidencias",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+
+            // Campo de búsqueda
+            TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                labelText: "Buscar por nombre o descripción",
+              ),
+            ),
+
+            // Campo de fecha de inicio
+            TextField(
+              controller: _startDateController,
+              decoration: const InputDecoration(
+                labelText: "Fecha de inicio (YYYY-MM-DD)",
+              ),
+              keyboardType: TextInputType.datetime,
+            ),
+
+            // Campo de fecha de fin
+            TextField(
+              controller: _endDateController,
+              decoration: const InputDecoration(
+                labelText: "Fecha de fin (YYYY-MM-DD)",
+              ),
+              keyboardType: TextInputType.datetime,
+            ),
+
+            // Ordenamiento
+            DropdownButtonFormField<String>(
+              value: _sortOrder,
+              onChanged: (value) {
+                setState(() {
+                  _sortOrder = value!;
+                });
+              },
+              items: const [
+                DropdownMenuItem(
+                  value: "asc",
+                  child: Text("Más antiguas primero"),
+                ),
+                DropdownMenuItem(
+                  value: "desc",
+                  child: Text("Más recientes primero"),
+                ),
+              ],
+              decoration: const InputDecoration(labelText: "Ordenar por fecha"),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Botones de Filtrar y Limpiar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _applyFilters,
+                  child: const Text("Filtrar"),
+                ),
+                TextButton(
+                  onPressed: _clearFilters,
+                  child: const Text("Limpiar filtros"),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class EvidenceListItem extends StatelessWidget {
   final Evidence evidence;
 
@@ -212,7 +454,6 @@ class EvidenceListItem extends StatelessWidget {
   }
 }
 
-/// Widget que muestra el encabezado del post (avatar, nombre, etc.).
 class _EvidenceHeader extends StatelessWidget {
   final Evidence evidence;
   final VoidCallback onDelete;

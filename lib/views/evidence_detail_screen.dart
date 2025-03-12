@@ -6,11 +6,13 @@ import 'package:app_monitor/models/photo.dart';
 import 'package:app_monitor/providers/evidence_detail_provider.dart';
 import 'package:app_monitor/helpers/helpers.dart';
 
+/// Pantalla que muestra el detalle de una evidencia con sus fotografías.
+/// Permite actualizar la evidencia, agregar, editar y eliminar fotografías.
 class EvidenceDetailScreen extends StatelessWidget {
-  final int evidenceId;
-  const EvidenceDetailScreen({Key? key, required this.evidenceId})
-    : super(key: key);
+  final int? evidenceId;
+  const EvidenceDetailScreen({Key? key, this.evidenceId}) : super(key: key);
 
+  /// Muestra el diálogo para actualizar la evidencia.
   void _showUpdateEvidenceDialog(BuildContext context, Evidence evidence) {
     showEvidenceFormDialog(
       context,
@@ -32,6 +34,7 @@ class EvidenceDetailScreen extends StatelessWidget {
     );
   }
 
+  /// Muestra el diálogo para crear una nueva fotografía.
   void _showCreatePhotoDialog(BuildContext context) {
     showPhotoFormDialog(
       context,
@@ -52,6 +55,7 @@ class EvidenceDetailScreen extends StatelessWidget {
     );
   }
 
+  /// Muestra el diálogo para actualizar una fotografía existente.
   void _showUpdatePhotoDialog(
     BuildContext context,
     Photo photo,
@@ -81,20 +85,21 @@ class EvidenceDetailScreen extends StatelessWidget {
     );
   }
 
-  void _deletePhoto(BuildContext context, int photoId) async {
+  /// Elimina una fotografía previa confirmación del usuario.
+  Future<void> _deletePhoto(BuildContext context, int photoId) async {
     bool confirmed = await showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text("Confirmar eliminación"),
-            content: Text("¿Estás seguro de eliminar esta fotografía?"),
+            title: const Text("Confirmar eliminación"),
+            content: const Text("¿Estás seguro de eliminar esta fotografía?"),
             actions: [
               TextButton(
-                child: Text("Cancelar"),
+                child: const Text("Cancelar"),
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               TextButton(
-                child: Text("Eliminar"),
+                child: const Text("Eliminar"),
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],
@@ -116,14 +121,30 @@ class EvidenceDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Si no se pasa ningún id, se muestra un mensaje indicando que no se ha seleccionado evidencia.
+    if (evidenceId == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Detalles de Evidencia")),
+        body: const Center(
+          child: Text("No se ha seleccionado ninguna evidencia."),
+        ),
+      );
+    }
+
     return Consumer<EvidenceDetailProvider>(
       builder: (context, provider, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text("Detalles de Evidencia"),
+            backgroundColor: Colors.white,
+            elevation: 1,
+            title: const Text(
+              "Detalles de Evidencia",
+              style: TextStyle(color: Colors.black),
+            ),
+            iconTheme: const IconThemeData(color: Colors.black),
             actions: [
               IconButton(
-                icon: Icon(Icons.edit),
+                icon: const Icon(Icons.edit),
                 onPressed:
                     provider.evidence == null
                         ? null
@@ -134,112 +155,239 @@ class EvidenceDetailScreen extends StatelessWidget {
               ),
             ],
           ),
+          backgroundColor: Colors.grey[200],
           body:
               provider.isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : provider.error != null
                   ? Center(child: Text("Error: ${provider.error}"))
                   : provider.evidence == null
-                  ? Center(child: Text("No se encontró la evidencia"))
+                  ? const Center(child: Text("No se encontró la evidencia"))
                   : SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Nombre: ${provider.evidence!.name}",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Descripción: ${provider.evidence!.description ?? ''}",
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          "Fotografías:",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: provider.evidence!.photos.length,
-                          itemBuilder: (context, index) {
-                            final photo = provider.evidence!.photos[index];
-                            return Card(
-                              margin: EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 16,
+                        _EvidenceDetailHeader(evidence: provider.evidence!),
+                        const SizedBox(height: 16),
+                        _EvidenceDescription(evidence: provider.evidence!),
+                        const SizedBox(height: 16),
+                        _PhotosSection(
+                          evidence: provider.evidence!,
+                          onUpdatePhoto:
+                              (photo) => _showUpdatePhotoDialog(
+                                context,
+                                photo,
+                                provider.evidence!,
                               ),
-                              elevation: 4,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Container(
-                                    height: 200,
-                                    child: CachedNetworkImage(
-                                      imageUrl: photo.photoPath,
-                                      fit: BoxFit.cover,
-                                      placeholder:
-                                          (context, url) => Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                      errorWidget:
-                                          (context, url, error) => Center(
-                                            child: Icon(
-                                              Icons.broken_image,
-                                              size: 50,
-                                            ),
-                                          ),
-                                    ),
-                                  ),
-                                  ListTile(
-                                    title: Text("Foto ID: ${photo.id}"),
-                                    subtitle: Text(photo.descripcion ?? ""),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.edit),
-                                          onPressed: () {
-                                            _showUpdatePhotoDialog(
-                                              context,
-                                              photo,
-                                              provider.evidence!,
-                                            );
-                                          },
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.delete),
-                                          onPressed:
-                                              () => _deletePhoto(
-                                                context,
-                                                photo.id,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                          onDeletePhoto:
+                              (photoId) => _deletePhoto(context, photoId),
                         ),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          child: Text("Agregar Fotografía"),
-                          onPressed: () => _showCreatePhotoDialog(context),
+                        const SizedBox(height: 16),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: () => _showCreatePhotoDialog(context),
+                            child: const Text("Agregar Fotografía"),
+                          ),
                         ),
                       ],
                     ),
                   ),
         );
       },
+    );
+  }
+}
+
+/// Widget que muestra el encabezado con el nombre de la evidencia y la fecha.
+class _EvidenceDetailHeader extends StatelessWidget {
+  final Evidence evidence;
+  const _EvidenceDetailHeader({Key? key, required this.evidence})
+    : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          evidence.name,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          evidence.formattedDate,
+          style: const TextStyle(color: Colors.grey, fontSize: 14),
+        ),
+      ],
+    );
+  }
+}
+
+/// Widget que muestra la descripción de la evidencia.
+class _EvidenceDescription extends StatelessWidget {
+  final Evidence evidence;
+  const _EvidenceDescription({Key? key, required this.evidence})
+    : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      evidence.description ?? "Sin descripción",
+      style: const TextStyle(fontSize: 16),
+    );
+  }
+}
+
+/// Sección que muestra la lista de fotografías asociadas a la evidencia.
+class _PhotosSection extends StatelessWidget {
+  final Evidence evidence;
+  final Function(Photo) onUpdatePhoto;
+  final Function(int) onDeletePhoto;
+
+  const _PhotosSection({
+    Key? key,
+    required this.evidence,
+    required this.onUpdatePhoto,
+    required this.onDeletePhoto,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (evidence.photos.isEmpty) {
+      return const Text("No hay fotografías");
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Fotografías:",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: evidence.photos.length,
+          itemBuilder: (context, index) {
+            final photo = evidence.photos[index];
+            return PhotoCard(
+              photo: photo,
+              onEdit: () => onUpdatePhoto(photo),
+              onDelete: () => onDeletePhoto(photo.id),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// Widget que representa cada tarjeta de fotografía con imagen y acciones.
+class PhotoCard extends StatelessWidget {
+  final Photo photo;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const PhotoCard({
+    Key? key,
+    required this.photo,
+    required this.onEdit,
+    required this.onDelete,
+  }) : super(key: key);
+
+  void _openZoom(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ZoomablePhotoPage(imageUrl: photo.photoPath),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Imagen con efecto fadeIn y placeholder.
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: GestureDetector(
+              onTap: () => _openZoom(context),
+              child: CachedNetworkImage(
+                imageUrl: photo.photoPath,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                fadeInDuration: const Duration(milliseconds: 300),
+                placeholder:
+                    (context, url) => Container(
+                      height: 200,
+                      color: Colors.grey[300],
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                errorWidget:
+                    (context, url, error) => Container(
+                      height: 200,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, size: 50),
+                      ),
+                    ),
+              ),
+            ),
+          ),
+          ListTile(
+            title: Text("Foto ID: ${photo.id}"),
+            subtitle: Text(photo.descripcion ?? ""),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
+                IconButton(icon: const Icon(Icons.delete), onPressed: onDelete),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget dedicado a mostrar la imagen con capacidad de zoom.
+class ZoomablePhotoPage extends StatelessWidget {
+  final String imageUrl;
+
+  const ZoomablePhotoPage({Key? key, required this.imageUrl}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Zoom de la Foto')),
+      body: Center(
+        child: InteractiveViewer(
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            fit: BoxFit.contain,
+            placeholder:
+                (context, url) => Container(
+                  color: Colors.grey[300],
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            errorWidget:
+                (context, url, error) => Container(
+                  color: Colors.grey[300],
+                  child: const Center(
+                    child: Icon(Icons.broken_image, size: 50),
+                  ),
+                ),
+          ),
+        ),
+      ),
     );
   }
 }
