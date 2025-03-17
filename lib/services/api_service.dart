@@ -115,14 +115,23 @@ class ApiService {
   ) async {
     try {
       var request = http.MultipartRequest("POST", Uri.parse("$baseUrl/photos"));
-      request.followRedirects = true;
+
+      request.headers.addAll({
+        "Content-Type": "multipart/form-data",
+        "Accept": "application/json",
+      });
 
       request.fields["evidence_id"] = evidenceId.toString();
       request.fields["descripcion"] = descripcion;
       request.files.add(await http.MultipartFile.fromPath("photo", filePath));
 
+      request.followRedirects = true; // ✅ Permitir redirecciones
+
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
+
+      print("Código de respuesta: ${response.statusCode}");
+      print("Cuerpo de respuesta: ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonData = json.decode(response.body);

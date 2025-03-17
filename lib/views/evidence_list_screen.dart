@@ -174,14 +174,14 @@ class EvidenceListItem extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
-                      evidence.description ?? '',
+                      evidence.name,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                if (evidence.description != null)
+                if (evidence.name != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(

@@ -4,6 +4,8 @@
 // ==============================
 //
 
+import 'dart:io';
+import 'package:app_monitor/helpers/compress_image.dart';
 import 'package:flutter/material.dart';
 import 'package:app_monitor/models/evidence.dart';
 import 'package:app_monitor/services/api_service.dart';
@@ -41,8 +43,19 @@ class EvidenceDetailProvider with ChangeNotifier {
 
   Future<void> createPhoto(String descripcion, String filePath) async {
     if (evidence == null) return;
+
     try {
-      await ApiService.createPhoto(evidence!.id, descripcion, filePath);
+      // Comprimir la imagen antes de subirla
+      File compressedFile = await compressImage(filePath);
+
+      // Subir la imagen comprimida
+      await ApiService.createPhoto(
+        evidence!.id,
+        descripcion,
+        compressedFile.path,
+      );
+
+      // Recargar la evidencia después de subir la imagen
       await loadEvidence();
     } catch (e) {
       throw e;
