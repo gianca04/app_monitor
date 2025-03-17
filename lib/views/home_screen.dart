@@ -1,6 +1,4 @@
-import 'package:app_monitor/screens/SearchPage.dart';
 import 'package:app_monitor/views/evidence_create.dart';
-import 'package:app_monitor/views/evidence_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:app_monitor/views/evidence_list_screen.dart';
@@ -56,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           SalomonBottomBarItem(
             icon: Icon(Icons.add_a_photo),
-            title: Text("Buscar Evidencia"),
+            title: Text("Agregar Evidencia"),
             selectedColor: Colors.pink,
           ),
           SalomonBottomBarItem(

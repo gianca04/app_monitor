@@ -398,10 +398,11 @@ class PhotoCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    "Foto ID: ${photo.id}",
+                    "${photo.id} : ${photo.descripcion ?? 'Sin descripción'}",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
+
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.blueAccent),
                   onPressed: onEdit,

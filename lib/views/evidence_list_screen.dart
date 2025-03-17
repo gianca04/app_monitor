@@ -1,4 +1,3 @@
-import 'package:app_monitor/helpers/helpers.dart';
 import 'package:app_monitor/models/evidence.dart';
 import 'package:app_monitor/models/photo.dart';
 import 'package:app_monitor/providers/evidence_providers.dart';
@@ -28,9 +27,6 @@ class _EvidenceListScreenState extends State<EvidenceListScreen> {
       listen: false,
     );
     // Cargamos la primera página si aún no se ha cargado
-    if (evidenceProvider.evidences.isEmpty) {
-      evidenceProvider.loadEvidences();
-    }
 
     _scrollController =
         ScrollController()..addListener(() {

@@ -160,7 +160,24 @@ Future<void> showPhotoFormDialog(
                       );
                       return;
                     }
-                    await onSubmit(descripcion, imageFile);
+                    // Mostrar diálogo de carga (indicador)
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) {
+                        return Center(child: CircularProgressIndicator());
+                      },
+                    );
+                    try {
+                      await onSubmit(descripcion, imageFile);
+                    } catch (e) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+                    }
+                    // Cerrar el diálogo de carga
+                    Navigator.of(context).pop();
+                    // Cerrar el diálogo principal
                     Navigator.of(context).pop();
                   }
                 },

@@ -8,8 +8,8 @@ class Photo {
 
   factory Photo.fromJson(Map<String, dynamic> json) {
     String rawPath = json['photo_path'];
-    if (!rawPath.startsWith("http")) {
-      rawPath = "http://192.168.10.52:8000/" + rawPath;
+    if (!rawPath.startsWith("https")) {
+      rawPath = "https://api-monitor.sat-industriales.pe/" + rawPath;
     }
     return Photo(
       id: json['id'],

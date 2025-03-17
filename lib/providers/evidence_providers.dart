@@ -52,9 +52,9 @@ class EvidenceProvider with ChangeNotifier {
   Future<void> loadEvidences({bool loadMore = false}) async {
     if (loadMore) {
       isLoadMore = true;
+      // No limpiar la lista en loadMore para conservar las evidencias existentes
     } else {
       isLoading = true;
-      // Reiniciamos la paginación si no es loadMore
       _currentPage = 1;
       _evidences.clear();
     }
@@ -65,11 +65,12 @@ class EvidenceProvider with ChangeNotifier {
           await ApiService.getEvidences(
             page: _currentPage,
             search: search,
-            startDate: startDate, // Cambio de nombre para coincidir con Laravel
-            endDate: endDate, // Cambio de nombre para coincidir con Laravel
-            sortOrder: sortOrder, // Cambio de nombre para coincidir con Laravel
+            startDate: startDate,
+            endDate: endDate,
+            sortOrder: sortOrder,
           );
       _lastPage = paginatedResponse.lastPage;
+      // Agregar las evidencias obtenidas a la lista existente
       _evidences.addAll(paginatedResponse.evidences);
     } catch (e) {
       error = e.toString();
@@ -95,6 +96,7 @@ class EvidenceProvider with ChangeNotifier {
         name,
         description,
       );
+      _evidences.clear();
       await loadEvidences();
       return newEvidenceId;
     } catch (e) {

@@ -15,7 +15,7 @@ class APIException implements Exception {
 }
 
 class ApiService {
-  static const String baseUrl = "http://app-monitor.sat-industriales.pe/api";
+  static const String baseUrl = "https://api-monitor.sat-industriales.pe/api";
 
   static Future<PaginatedEvidences> getEvidences({
     int page = 1,
@@ -113,17 +113,27 @@ class ApiService {
     String descripcion,
     String filePath,
   ) async {
-    var request = http.MultipartRequest("POST", Uri.parse("$baseUrl/photos"));
-    request.fields["evidence_id"] = evidenceId.toString();
-    request.fields["descripcion"] = descripcion;
-    request.files.add(await http.MultipartFile.fromPath("photo", filePath));
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final jsonData = json.decode(response.body);
-      return jsonData['message'];
-    } else {
-      throw APIException("Error al crear la fotografía");
+    try {
+      var request = http.MultipartRequest("POST", Uri.parse("$baseUrl/photos"));
+      request.followRedirects = true;
+
+      request.fields["evidence_id"] = evidenceId.toString();
+      request.fields["descripcion"] = descripcion;
+      request.files.add(await http.MultipartFile.fromPath("photo", filePath));
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonData = json.decode(response.body);
+        return jsonData['message'];
+      } else {
+        throw APIException(
+          "Error al crear la fotografía. Código: ${response.statusCode}, Respuesta: ${response.body}",
+        );
+      }
+    } catch (e) {
+      throw APIException("Excepción al subir la foto: ${e.toString()}");
     }
   }
 

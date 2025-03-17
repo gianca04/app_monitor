@@ -1,4 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- PERMISOS DE ALMACENAMIENTO -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- Permiso para acceder a Internet -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Permiso para usar la red cuando está disponible (Wi-Fi y datos móviles) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+
     <application
         android:label="app_monitor"
         android:name="${applicationName}"

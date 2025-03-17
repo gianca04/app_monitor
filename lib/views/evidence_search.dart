@@ -26,9 +26,6 @@ class _EvidenceSearchScreenState extends State<EvidenceSearchScreen> {
     );
 
     // Cargar evidencias si la lista está vacía
-    if (evidenceProvider.evidences.isEmpty) {
-      evidenceProvider.loadEvidences();
-    }
 
     _scrollController =
         ScrollController()..addListener(() {
